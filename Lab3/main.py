@@ -1,59 +1,55 @@
 import chess
 import chess.svg
-from eval import getEval
-from negamax import negamax
-from negascout import negascout
-from PVS import PVS
-import sys
-
-board = chess.Board()
+from algorithms import *
 
 INFINITY = 999999
 
 
-def BestMove(depth, board, func):
-    Moves = board.legal_moves
-    bestMove = None
+def get_best_move(depth, board, func: Algorithm):
+    moves = board.legal_moves
+    best_move = None
 
-    maxScore = -INFINITY
+    max_score = -INFINITY
 
-    for move in Moves:
+    for move in moves:
         board.push(move)
 
-        if func == 'negamax':
+        if func == Algorithm.NEGAMAX:
             score = negamax(depth - 1, board)
-        elif func == 'negascout':
+        elif func == Algorithm.NEGASCOUT:
             score = negascout(depth - 1, board, -INFINITY, INFINITY)
-        elif func == 'PVS':
-            score = PVS(depth - 1, board, -INFINITY, INFINITY)
+        else:
+            score = pvs(depth - 1, board, -INFINITY, INFINITY)
         print(board)
         print('\na b c d e f g h')
         board.pop()
-        if score >= maxScore:
+        if score >= max_score:
             print('Новий кращий хід: ' + str(move.uci()) + '\nБали: ' + str(score))
-            maxScore = score
-            bestMove = move
-    return bestMove
+            max_score = score
+            best_move = move
+    return best_move
 
-def main(argv):
+
+def main():
     board = chess.Board()
-    func = 'negascout'
+    func = Algorithm.PVS
 
     while 1:
-        cpuMove = BestMove(1, board, func)
-        print('Хід: ' + board.san(cpuMove))
-        board.push(cpuMove)
+        cpu_move = get_best_move(1, board, func)
+        print('Хід: ' + board.san(cpu_move))
+        board.push(cpu_move)
         print(board)
         print('\na b c d e f g h')
-        svg = chess.svg.board(board)
+        board_svg = chess.svg.board(board)
         with open('board.svg', 'w') as file:
-            file.write(svg)
+            file.write(board_svg)
 
         move = input("Походіть: ")
         if str(move) == 'score':
-            print('Кількість балів: ' + str(getEval(board)))
+            print('Кількість балів: ' + str(get_score(board)))
             move = input("Походіть: ")
         board.push_san(str(move))
 
+
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    main()
